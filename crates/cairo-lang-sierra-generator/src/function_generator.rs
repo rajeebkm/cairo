@@ -105,9 +105,9 @@ fn get_function_code(
     // TODO(spapini): Don't intern objects for the semantic model outside the crate. These should
     // be regarded as private.
     Ok(pre_sierra::Function {
-        id: db.intern_sierra_function(db.intern_function(semantic::FunctionLongId {
-            function: function_id.concrete(db.upcast()),
-        })),
+        id: db.intern_sierra_function(db.intern_maybe_trait_function(
+            semantic::MaybeTraitFunctionLongId { function: function_id.concrete(db.upcast()) },
+        )),
         prolog_size,
         body: statements,
         entry_point: label_id,

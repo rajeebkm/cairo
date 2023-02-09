@@ -14,7 +14,7 @@ use crate::db::SemanticGroup;
 use crate::diagnostic::SemanticDiagnostics;
 use crate::expr::compute::{compute_root_expr, ComputationContext, Environment};
 use crate::resolve_path::{ResolvedLookback, Resolver};
-use crate::{semantic, Expr, FunctionId, SemanticDiagnostic, TypeId};
+use crate::{semantic, Expr, MaybeTraitFunctionId, SemanticDiagnostic, TypeId};
 
 #[cfg(test)]
 #[path = "free_function_test.rs"]
@@ -168,7 +168,7 @@ pub fn priv_free_function_body_data(
     let body_expr = compute_root_expr(&mut ctx, &function_body, return_type)?;
     let ComputationContext { exprs, statements, resolver, .. } = ctx;
 
-    let direct_callees: HashSet<FunctionId> = exprs
+    let direct_callees: HashSet<MaybeTraitFunctionId> = exprs
         .iter()
         .filter_map(|(_id, expr)| try_extract_matches!(expr, Expr::FunctionCall))
         .map(|f| f.function)

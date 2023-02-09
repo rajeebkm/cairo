@@ -27,7 +27,7 @@ use crate::diagnostic::SemanticDiagnosticKind::*;
 use crate::diagnostic::{NotFoundItemType, SemanticDiagnostics};
 use crate::expr::inference::Inference;
 use crate::items::enm::{ConcreteVariant, SemanticEnumEx};
-use crate::items::functions::GenericFunctionId;
+use crate::items::functions::{GenericFunctionId, MaybeTraitGenericFunctionId};
 use crate::items::imp::{
     find_impls_at_context, ConcreteImplId, ConcreteImplLongId, ImplId, ImplLookupContext,
 };
@@ -39,31 +39,33 @@ use crate::items::us::SemanticUseEx;
 use crate::literals::LiteralLongId;
 use crate::types::{resolve_type, substitute_ty, GenericSubstitution};
 use crate::{
-    ConcreteFunction, ConcreteTypeId, FunctionId, FunctionLongId, GenericArgumentId, GenericParam,
-    TypeId, TypeLongId, Variant,
+    ConcreteTypeId, FunctionId, GenericArgumentId, GenericParam, MaybeTraitConcreteFunction,
+    MaybeTraitFunctionId, MaybeTraitFunctionLongId, TypeId, TypeLongId, Variant,
 };
 
 // Resolved items:
 // ResolvedConcreteItem - returned by resolve_concrete_path(). Paths with generic arguments.
 // ResolvedGenericItem - returned by resolve_generic_path(). Paths without generic arguments.
+// yg: must have MaybeTrait
 #[derive(Clone, PartialEq, Eq, Debug, DebugWithDb)]
 #[debug_db(dyn SemanticGroup + 'static)]
 pub enum ResolvedConcreteItem {
     Constant(ConstantId),
     Module(ModuleId),
-    Function(FunctionId),
+    Function(MaybeTraitFunctionId),
     TraitFunction(ConcreteTraitGenericFunctionId),
     Type(TypeId),
     Variant(ConcreteVariant),
     Trait(ConcreteTraitId),
     Impl(ImplId),
 }
+// yg: must have MaybeTrait
 #[derive(Clone, PartialEq, Eq, Debug, DebugWithDb)]
 #[debug_db(dyn SemanticGroup + 'static)]
 pub enum ResolvedGenericItem {
     Constant(ConstantId),
     Module(ModuleId),
-    GenericFunction(GenericFunctionId),
+    GenericFunction(MaybeTraitGenericFunctionId),
     TraitFunction(TraitFunctionId),
     GenericType(GenericTypeId),
     GenericTypeAlias(TypeAliasId),
@@ -77,7 +79,7 @@ impl ResolvedConcreteItem {
             ResolvedConcreteItem::Constant(id) => ResolvedGenericItem::Constant(*id),
             ResolvedConcreteItem::Module(item) => ResolvedGenericItem::Module(*item),
             ResolvedConcreteItem::Function(function) => ResolvedGenericItem::GenericFunction(
-                db.lookup_intern_function(*function).function.generic_function,
+                db.lookup_intern_maybe_trait_function(*function).function.generic_function,
             ),
             ResolvedConcreteItem::TraitFunction(trait_function) => {
                 ResolvedGenericItem::TraitFunction(trait_function.function_id(db))
@@ -430,7 +432,7 @@ impl<'db> Resolver<'db> {
                 Ok(ResolvedConcreteItem::Function(self.specialize_function(
                     diagnostics,
                     identifier.stable_ptr().untyped(),
-                    GenericFunctionId::Trait(trait_function),
+                    MaybeTraitGenericFunctionId::Trait(trait_function),
                     generic_args_syntax.unwrap_or_default(),
                 )?))
             }
@@ -635,10 +637,10 @@ impl<'db> Resolver<'db> {
                 resolved_item
             }
             ModuleItemId::FreeFunction(id) => {
-                ResolvedGenericItem::GenericFunction(GenericFunctionId::Free(id))
+                ResolvedGenericItem::GenericFunction(MaybeTraitGenericFunctionId::Free(id))
             }
             ModuleItemId::ExternFunction(id) => {
-                ResolvedGenericItem::GenericFunction(GenericFunctionId::Extern(id))
+                ResolvedGenericItem::GenericFunction(MaybeTraitGenericFunctionId::Extern(id))
             }
             ModuleItemId::Struct(id) => ResolvedGenericItem::GenericType(GenericTypeId::Struct(id)),
             ModuleItemId::Enum(id) => ResolvedGenericItem::GenericType(GenericTypeId::Enum(id)),
@@ -740,14 +742,15 @@ impl<'db> Resolver<'db> {
         Ok(self.db.intern_concrete_impl(ConcreteImplLongId { impl_def_id, generic_args }))
     }
 
+    // yg: must have MaybeTrait
     /// Specializes a generic function.
     pub fn specialize_function(
         &mut self,
         diagnostics: &mut SemanticDiagnostics,
         stable_ptr: SyntaxStablePtrId,
-        generic_function: GenericFunctionId,
+        generic_function: MaybeTraitGenericFunctionId,
         generic_args: Vec<ast::Expr>,
-    ) -> Maybe<FunctionId> {
+    ) -> Maybe<MaybeTraitFunctionId> {
         // TODO(lior): Should we report diagnostic if `impl_def_generic_params` failed?
         let generic_params: Vec<_> = self
             .db
@@ -757,8 +760,8 @@ impl<'db> Resolver<'db> {
         let generic_args =
             self.resolve_generic_args(diagnostics, &generic_params, generic_args, stable_ptr)?;
 
-        Ok(self.db.intern_function(FunctionLongId {
-            function: ConcreteFunction { generic_function, generic_args },
+        Ok(self.db.intern_maybe_trait_function(MaybeTraitFunctionLongId {
+            function: MaybeTraitConcreteFunction { generic_function, generic_args },
         }))
     }
 

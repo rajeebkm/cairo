@@ -195,7 +195,7 @@ fn try_get_function_with_body_id(
         return Err(skip_diagnostic());
     }
     let function = db
-        .lookup_intern_function(
+        .lookup_intern_maybe_trait_function(
             db.lookup_intern_sierra_function(
                 try_extract_matches!(
                     libfunc.generic_args.get(0).to_maybe()?,

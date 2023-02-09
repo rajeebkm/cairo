@@ -19,7 +19,8 @@ use crate::expr::inference::{Inference, TypeVar};
 use crate::items::imp::{find_impls_at_context, ImplId, ImplLookupContext};
 use crate::resolve_path::{ResolvedConcreteItem, Resolver};
 use crate::{
-    semantic, ConcreteImplId, ConcreteVariant, FunctionId, GenericArgumentId, GenericParam,
+    semantic, ConcreteImplId, ConcreteVariant, GenericArgumentId, GenericParam,
+    MaybeTraitFunctionId,
 };
 
 /// A substitution of generic arguments in generic parameters. Used for concretization.
@@ -326,14 +327,14 @@ pub fn substitute_ty(
 pub fn substitute_function(
     db: &dyn SemanticGroup,
     substitution: &GenericSubstitution,
-    function: &mut FunctionId,
+    function: &mut MaybeTraitFunctionId,
 ) {
-    let mut long_function = db.lookup_intern_function(*function);
+    let mut long_function = db.lookup_intern_maybe_trait_function(*function);
     substitute_generics_args_inplace(db, substitution, &mut long_function.function.generic_args);
     long_function.function.generic_function.generic_args_apply(db, |generic_args| {
         substitute_generics_args_inplace(db, substitution, generic_args)
     });
-    *function = db.intern_function(long_function);
+    *function = db.intern_maybe_trait_function(long_function);
 }
 
 /// Substituted generics in a [ConcreteVariant].

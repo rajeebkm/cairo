@@ -31,7 +31,8 @@ use crate::items::trt::ConcreteTraitId;
 use crate::plugin::{DynPluginAuxData, SemanticPlugin};
 use crate::resolve_path::{ResolvedConcreteItem, ResolvedGenericItem, ResolvedLookback};
 use crate::{
-    corelib, items, literals, semantic, types, FunctionId, Parameter, SemanticDiagnostic, TypeId,
+    corelib, items, literals, semantic, types, FunctionId, MaybeTraitFunctionId, Parameter,
+    SemanticDiagnostic, TypeId,
 };
 
 /// Helper trait to make sure we can always get a `dyn SemanticGroup + 'static` from a
@@ -55,6 +56,11 @@ pub trait SemanticGroup:
     + AsFilesGroupMut
     + Elongate
 {
+    #[salsa::interned]
+    fn intern_maybe_trait_function(
+        &self,
+        id: items::functions::MaybeTraitFunctionLongId,
+    ) -> semantic::MaybeTraitFunctionId;
     #[salsa::interned]
     fn intern_function(&self, id: items::functions::FunctionLongId) -> semantic::FunctionId;
     #[salsa::interned]
@@ -607,7 +613,10 @@ pub trait SemanticGroup:
     /// Returns the signature of a concrete function. This include free functions, extern functions,
     /// etc...
     #[salsa::invoke(items::functions::concrete_function_signature)]
-    fn concrete_function_signature(&self, function_id: FunctionId) -> Maybe<semantic::Signature>;
+    fn concrete_function_signature(
+        &self,
+        function_id: MaybeTraitFunctionId,
+    ) -> Maybe<semantic::Signature>;
 
     // Generic type.
     // =============

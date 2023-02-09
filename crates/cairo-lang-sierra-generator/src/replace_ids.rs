@@ -137,7 +137,7 @@ impl SierraIdReplacer for DebugReplacer<'_> {
             debug_name: Some(
                 format!(
                     "{:?}",
-                    self.db.lookup_intern_function(semantic_id).debug(self.db.upcast())
+                    self.db.lookup_intern_maybe_trait_function(semantic_id).debug(self.db.upcast())
                 )
                 .into(),
             ),

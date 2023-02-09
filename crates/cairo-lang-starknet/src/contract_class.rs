@@ -9,7 +9,7 @@ use cairo_lang_defs::ids::TopLevelLanguageElementId;
 use cairo_lang_diagnostics::ToOption;
 use cairo_lang_filesystem::ids::CrateId;
 use cairo_lang_semantic::db::SemanticGroup;
-use cairo_lang_semantic::{ConcreteFunctionWithBodyId, FunctionLongId};
+use cairo_lang_semantic::{ConcreteFunctionWithBodyId, MaybeTraitFunctionLongId};
 use cairo_lang_sierra_generator::canonical_id_replacer::CanonicalReplacer;
 use cairo_lang_sierra_generator::db::SierraGenGroup;
 use cairo_lang_sierra_generator::replace_ids::{replace_sierra_ids_in_program, SierraIdReplacer};
@@ -203,8 +203,9 @@ fn get_entry_points(
 ) -> Result<Vec<ContractEntryPoint>> {
     let mut entry_points = vec![];
     for function_with_body_id in entry_point_functions {
-        let function_id =
-            db.intern_function(FunctionLongId { function: function_with_body_id.concrete(db) });
+        let function_id = db.intern_maybe_trait_function(MaybeTraitFunctionLongId {
+            function: function_with_body_id.concrete(db),
+        });
 
         let sierra_id = db.intern_sierra_function(function_id);
 

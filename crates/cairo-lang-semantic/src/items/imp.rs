@@ -39,8 +39,8 @@ use crate::items::us::SemanticUseEx;
 use crate::resolve_path::{ResolvedConcreteItem, ResolvedGenericItem, ResolvedLookback, Resolver};
 use crate::types::{substitute_generics_args_inplace, GenericSubstitution};
 use crate::{
-    semantic, ConcreteTraitId, ConcreteTraitLongId, Expr, FunctionId, GenericArgumentId,
-    GenericParam, Mutability, SemanticDiagnostic, TypeId, TypeLongId,
+    semantic, ConcreteTraitId, ConcreteTraitLongId, Expr, GenericArgumentId, GenericParam,
+    MaybeTraitFunctionId, Mutability, SemanticDiagnostic, TypeId, TypeLongId, FunctionId,
 };
 
 #[cfg(test)]

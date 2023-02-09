@@ -15,7 +15,8 @@ pub use crate::expr::pattern::{
 pub use crate::items::enm::{ConcreteVariant, Variant};
 pub use crate::items::function_with_body::FunctionBody;
 pub use crate::items::functions::{
-    ConcreteFunction, ConcreteFunctionWithBodyId, FunctionId, FunctionLongId, Signature,
+    ConcreteFunction, ConcreteFunctionWithBodyId, FunctionId, FunctionLongId,
+    MaybeTraitConcreteFunction, MaybeTraitFunctionId, MaybeTraitFunctionLongId, Signature,
 };
 pub use crate::items::generics::{GenericArgumentId, GenericParam};
 pub use crate::items::imp::{ConcreteImplId, ConcreteImplLongId};

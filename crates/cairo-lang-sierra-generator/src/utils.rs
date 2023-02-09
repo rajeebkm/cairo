@@ -265,7 +265,6 @@ pub fn get_concrete_libfunc_id(
 
             (concrete_function, generic_libfunc_id(db, extern_id, generic_args))
         }
-        GenericFunctionId::Trait(_) => unreachable!(),
     }
 }
 

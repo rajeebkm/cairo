@@ -5,7 +5,7 @@ use cairo_lang_diagnostics::{Diagnostics, Maybe, ToMaybe};
 use cairo_lang_utils::extract_matches;
 
 use super::attribute::ast_attributes_to_semantic;
-use super::functions::{FunctionDeclarationData, GenericFunctionId};
+use super::functions::{FunctionDeclarationData, MaybeTraitGenericFunctionId};
 use super::generics::semantic_generic_params;
 use crate::corelib::get_core_generic_function_id;
 use crate::db::SemanticGroup;
@@ -120,7 +120,7 @@ pub fn priv_extern_function_declaration_data(
     if signature.panicable {
         let panic_function = extract_matches!(
             get_core_generic_function_id(db.upcast(), "panic".into()),
-            GenericFunctionId::Extern
+            MaybeTraitGenericFunctionId::Extern
         );
         if extern_function_id != panic_function {
             diagnostics.report(function_syntax, PanicableExternFunction);

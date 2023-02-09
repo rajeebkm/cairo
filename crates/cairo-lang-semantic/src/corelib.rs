@@ -13,14 +13,17 @@ use crate::diagnostic::SemanticDiagnosticKind;
 use crate::expr::compute::ComputationContext;
 use crate::expr::inference::Inference;
 use crate::items::enm::SemanticEnumEx;
-use crate::items::functions::{ConcreteImplGenericFunctionId, GenericFunctionId};
+use crate::items::functions::{
+    ConcreteImplGenericFunctionId, GenericFunctionId, MaybeTraitGenericFunctionId,
+};
 use crate::items::trt::{ConcreteTraitGenericFunctionLongId, ConcreteTraitId};
 use crate::items::us::SemanticUseEx;
 use crate::resolve_path::ResolvedGenericItem;
 use crate::types::ConcreteEnumLongId;
 use crate::{
     semantic, ConcreteEnumId, ConcreteFunction, ConcreteImplLongId, ConcreteVariant, Expr, ExprId,
-    ExprTuple, FunctionId, FunctionLongId, GenericArgumentId, TypeId, TypeLongId,
+    ExprTuple, FunctionId, FunctionLongId, GenericArgumentId, MaybeTraitConcreteFunction,
+    MaybeTraitFunctionId, MaybeTraitFunctionLongId, TypeId, TypeLongId,
 };
 
 pub fn core_module(db: &dyn SemanticGroup) -> ModuleId {
@@ -286,7 +289,7 @@ pub fn core_binary_operator(
     inference: &mut Inference<'_>,
     binary_op: &BinaryOperator,
     stable_ptr: SyntaxStablePtrId,
-) -> Maybe<Result<FunctionId, SemanticDiagnosticKind>> {
+) -> Maybe<Result<MaybeTraitFunctionId, SemanticDiagnosticKind>> {
     let (trait_name, function_name) = match binary_op {
         BinaryOperator::Plus(_) => ("Add", "add"),
         BinaryOperator::Minus(_) => ("Sub", "sub"),
@@ -384,11 +387,18 @@ pub fn get_core_generic_function_id(db: &dyn SemanticGroup, name: SmolStr) -> Ge
         .expect("Failed to load core lib.")
         .unwrap_or_else(|| panic!("Function '{name}' was not found in core lib."));
     match module_item_id {
-        ModuleItemId::Use(use_id) => {
-            db.use_resolved_item(use_id).to_option().and_then(|resolved_generic_item| {
+        ModuleItemId::Use(use_id) => db
+            .use_resolved_item(use_id)
+            .to_option()
+            .and_then(|resolved_generic_item| {
                 try_extract_matches!(resolved_generic_item, ResolvedGenericItem::GenericFunction)
             })
-        }
+            .and_then(|generic_function_id| match generic_function_id {
+                MaybeTraitGenericFunctionId::Free(x) => Some(GenericFunctionId::Free(x)),
+                MaybeTraitGenericFunctionId::Extern(x) => Some(GenericFunctionId::Extern(x)),
+                MaybeTraitGenericFunctionId::Impl(x) => Some(GenericFunctionId::Impl(x)),
+                MaybeTraitGenericFunctionId::Trait(_) => unreachable!(),
+            }),
         _ => GenericFunctionId::option_from(module_item_id),
     }
     .unwrap_or_else(|| panic!("{name} is not a function."))
@@ -441,7 +451,7 @@ fn get_core_trait_function_infer(
     trait_name: SmolStr,
     function_name: SmolStr,
     stable_ptr: SyntaxStablePtrId,
-) -> FunctionId {
+) -> MaybeTraitFunctionId {
     let trait_id = get_core_trait(db, trait_name);
     let generic_params = db.trait_generic_params(trait_id);
     let generic_args = generic_params
@@ -454,9 +464,9 @@ fn get_core_trait_function_infer(
     let concrete_trait_function = db.intern_concrete_trait_function(
         ConcreteTraitGenericFunctionLongId::new(db, concrete_trait_id, trait_function),
     );
-    db.intern_function(FunctionLongId {
-        function: ConcreteFunction {
-            generic_function: GenericFunctionId::Trait(concrete_trait_function),
+    db.intern_maybe_trait_function(MaybeTraitFunctionLongId {
+        function: MaybeTraitConcreteFunction {
+            generic_function: MaybeTraitGenericFunctionId::Trait(concrete_trait_function),
             generic_args: vec![],
         },
     })

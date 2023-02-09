@@ -447,7 +447,7 @@ fn lower_expr_function_call(
 fn perform_function_call(
     ctx: &mut LoweringContext<'_>,
     scope: &mut BlockBuilder,
-    function: semantic::FunctionId,
+    function: semantic::MaybeTraitFunctionId,
     inputs: Vec<VariableId>,
     ref_tys: Vec<semantic::TypeId>,
     ret_ty: semantic::TypeId,

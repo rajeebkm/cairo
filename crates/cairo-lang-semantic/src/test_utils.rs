@@ -16,7 +16,7 @@ use cairo_lang_utils::{extract_matches, OptionFrom, Upcast};
 use pretty_assertions::assert_eq;
 
 use crate::db::{SemanticDatabase, SemanticGroup, SemanticGroupEx};
-use crate::items::functions::GenericFunctionId;
+use crate::items::functions::MaybeTraitGenericFunctionId;
 use crate::{semantic, ConcreteFunctionWithBodyId, SemanticDiagnostic};
 
 #[salsa::database(SemanticDatabase, DefsDatabase, ParserDatabase, SyntaxDatabase, FilesDatabase)]
@@ -148,9 +148,9 @@ pub fn setup_test_function(
     let generic_function_id = db
         .module_item_by_name(test_module.module_id, function_name.into())
         .expect("Failed to load module")
-        .and_then(GenericFunctionId::option_from)
+        .and_then(MaybeTraitGenericFunctionId::option_from)
         .unwrap_or_else(|| panic!("Function {function_name} was not found."));
-    let free_function_id = extract_matches!(generic_function_id, GenericFunctionId::Free);
+    let free_function_id = extract_matches!(generic_function_id, MaybeTraitGenericFunctionId::Free);
     let function_id = FunctionWithBodyId::Free(free_function_id);
     WithStringDiagnostics {
         value: TestFunction {

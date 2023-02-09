@@ -18,9 +18,11 @@ use cairo_lang_plugins::panicable::PanicablePlugin;
 use cairo_lang_runner::short_string::as_cairo_short_string;
 use cairo_lang_runner::{RunResultValue, SierraCasmRunner};
 use cairo_lang_semantic::db::SemanticGroup;
-use cairo_lang_semantic::items::functions::GenericFunctionId;
+use cairo_lang_semantic::items::functions::MaybeTraitGenericFunctionId;
 use cairo_lang_semantic::plugin::SemanticPlugin;
-use cairo_lang_semantic::{ConcreteFunction, ConcreteFunctionWithBodyId, FunctionLongId};
+use cairo_lang_semantic::{
+    ConcreteFunctionWithBodyId, MaybeTraitConcreteFunction, MaybeTraitFunctionLongId,
+};
 use cairo_lang_sierra_generator::db::SierraGenGroup;
 use cairo_lang_sierra_generator::replace_ids::replace_sierra_ids_in_program;
 use cairo_lang_starknet::plugin::StarkNetPlugin;
@@ -101,9 +103,9 @@ fn main() -> anyhow::Result<()> {
             (
                 format!(
                     "{:?}",
-                    FunctionLongId {
-                        function: ConcreteFunction {
-                            generic_function: GenericFunctionId::Free(test.func_id),
+                    MaybeTraitFunctionLongId {
+                        function: MaybeTraitConcreteFunction {
+                            generic_function: MaybeTraitGenericFunctionId::Free(test.func_id),
                             generic_args: vec![]
                         }
                     }

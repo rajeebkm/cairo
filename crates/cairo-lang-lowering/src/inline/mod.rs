@@ -150,7 +150,8 @@ fn should_inline(db: &dyn LoweringGroup, lowered: &FlatLowered) -> Maybe<bool> {
             // Inline function that only call another function.
             // TODO(ilya): Inline libfunc calls once we have #[inline(never)].
             Statement::Call(call_stmt) => {
-                let concrete_function = db.lookup_intern_function(call_stmt.function).function;
+                let concrete_function =
+                    db.lookup_intern_maybe_trait_function(call_stmt.function).function;
                 let semantic_db = db.upcast();
                 if concrete_function.get_body(semantic_db).is_some() {
                     return Ok(true);
@@ -408,7 +409,8 @@ impl<'db> FunctionInlinerRewriter<'db> {
     /// self.statements_rewrite_stack.
     fn rewrite(&mut self, statement: Statement) -> Maybe<()> {
         if let Statement::Call(ref stmt) = statement {
-            let concrete_function = self.ctx.db.lookup_intern_function(stmt.function).function;
+            let concrete_function =
+                self.ctx.db.lookup_intern_maybe_trait_function(stmt.function).function;
             let semantic_db = self.ctx.db.upcast();
             if let Some(function_id) = concrete_function.get_body(semantic_db) {
                 let inline_data =

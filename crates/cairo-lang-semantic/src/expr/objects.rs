@@ -8,7 +8,7 @@ use num_bigint::BigInt;
 
 use super::fmt::ExprFormatter;
 use super::pattern::Pattern;
-use crate::{semantic, FunctionId};
+use crate::{semantic, MaybeTraitFunctionId};
 
 pub type ExprId = Id<Expr>;
 pub type StatementId = Id<Statement>;

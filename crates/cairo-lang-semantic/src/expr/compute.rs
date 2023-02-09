@@ -38,7 +38,7 @@ use crate::diagnostic::{
     ElementKind, NotFoundItemType, SemanticDiagnostics, UnsupportedOutsideOfFunctionFeatureName,
 };
 use crate::items::enm::SemanticEnumEx;
-use crate::items::functions::{ConcreteImplGenericFunctionId, GenericFunctionId};
+use crate::items::functions::{ConcreteImplGenericFunctionId, MaybeTraitGenericFunctionId};
 use crate::items::imp::find_impls_at_context;
 use crate::items::modifiers::compute_mutability;
 use crate::items::structure::SemanticStructEx;
@@ -46,9 +46,12 @@ use crate::items::trt::{ConcreteTraitGenericFunctionId, ConcreteTraitGenericFunc
 use crate::items::us::SemanticUseEx;
 use crate::literals::LiteralLongId;
 use crate::resolve_path::{ResolvedConcreteItem, ResolvedGenericItem, Resolver};
-use crate::semantic::{self, FunctionId, LocalVariable, TypeId, TypeLongId, Variable};
+use crate::semantic::{self, LocalVariable, MaybeTraitFunctionId, TypeId, TypeLongId, Variable};
 use crate::types::{resolve_type, ConcreteTypeId};
-use crate::{ConcreteFunction, FunctionLongId, Mutability, Parameter, PatternStruct, Signature};
+use crate::{
+    MaybeTraitConcreteFunction, MaybeTraitFunctionLongId, Mutability, Parameter, PatternStruct,
+    Signature,
+};
 
 /// Context for computing the semantic model of expression trees.
 pub struct ComputationContext<'ctx> {
@@ -382,9 +385,9 @@ fn compute_expr_function_call_semantic(
             path.stable_ptr().untyped(),
         ),
         ResolvedConcreteItem::TraitFunction(trait_function) => {
-            let function = db.intern_function(FunctionLongId {
-                function: ConcreteFunction {
-                    generic_function: GenericFunctionId::Trait(trait_function),
+            let function = db.intern_maybe_trait_function(MaybeTraitFunctionLongId {
+                function: MaybeTraitConcreteFunction {
+                    generic_function: MaybeTraitGenericFunctionId::Trait(trait_function),
                     generic_args: vec![],
                 },
             });
@@ -479,12 +482,13 @@ pub fn compute_root_expr(
             Expr::Block(expr) => expr.ty = ctx.resolver.inference.reduce_ty(expr.ty),
             Expr::FunctionCall(call_expr) => {
                 call_expr.ty = ctx.resolver.inference.reduce_ty(call_expr.ty);
-                let mut long_function_id = ctx.db.lookup_intern_function(call_expr.function);
+                let mut long_function_id =
+                    ctx.db.lookup_intern_maybe_trait_function(call_expr.function);
                 long_function_id.function.generic_args = ctx
                     .resolver
                     .inference
                     .reduce_generic_args(&long_function_id.function.generic_args);
-                if let GenericFunctionId::Trait(concrete_trait_function) =
+                if let MaybeTraitGenericFunctionId::Trait(concrete_trait_function) =
                     long_function_id.function.generic_function
                 {
                     let concrete_impl_function = match resolve_trait_function(
@@ -506,7 +510,7 @@ pub fn compute_root_expr(
                     };
 
                     long_function_id.function.generic_function =
-                        GenericFunctionId::Impl(concrete_impl_function);
+                        MaybeTraitGenericFunctionId::Impl(concrete_impl_function);
                 }
                 long_function_id.function.generic_function.generic_args_apply(
                     ctx.db,
@@ -514,7 +518,7 @@ pub fn compute_root_expr(
                         *generic_args = ctx.resolver.inference.reduce_generic_args(generic_args)
                     },
                 );
-                call_expr.function = ctx.db.intern_function(long_function_id)
+                call_expr.function = ctx.db.intern_maybe_trait_function(long_function_id)
             }
             Expr::Match(expr) => {
                 expr.ty = ctx.resolver.inference.reduce_ty(expr.ty);
@@ -1311,9 +1315,9 @@ fn method_call_expr(
             stable_ptr.untyped(),
         )
         .expect("Conformity has already been checked in previous calls.");
-    let function_id = ctx.db.intern_function(FunctionLongId {
-        function: ConcreteFunction {
-            generic_function: GenericFunctionId::Trait(concrete_trait_function_id),
+    let function_id = ctx.db.intern_maybe_trait_function(MaybeTraitFunctionLongId {
+        function: MaybeTraitConcreteFunction {
+            generic_function: MaybeTraitGenericFunctionId::Trait(concrete_trait_function_id),
             generic_args,
         },
     });
@@ -1447,7 +1451,7 @@ pub fn get_variable_by_name(
 /// Typechecks a function call.
 fn expr_function_call(
     ctx: &mut ComputationContext<'_>,
-    function_id: FunctionId,
+    function_id: MaybeTraitFunctionId,
     named_args: Vec<(Expr, Option<ast::TerminalIdentifier>, Mutability)>,
     stable_ptr: ast::ExprPtr,
     function_name_stable_ptr: SyntaxStablePtrId,

@@ -8,7 +8,7 @@ use cairo_lang_semantic::GenericArgumentId;
 use cairo_lang_utils::ordered_hash_map::OrderedHashMap;
 use id_arena::Arena;
 use itertools::chain;
-use semantic::items::functions::GenericFunctionId;
+use semantic::items::functions::MaybeTraitGenericFunctionId;
 
 use crate::blocks::{Blocks, FlatBlocks};
 use crate::db::LoweringGroup;
@@ -132,16 +132,17 @@ impl<'a> PanicBlockLoweringContext<'a> {
     fn handle_statement(&mut self, stmt: &StructuredStatement) -> Maybe<()> {
         match &stmt.statement {
             crate::Statement::Call(call) => {
-                let concerete_function = self.db().lookup_intern_function(call.function).function;
+                let concerete_function =
+                    self.db().lookup_intern_maybe_trait_function(call.function).function;
                 match concerete_function.generic_function {
-                    GenericFunctionId::Free(free_callee)
+                    MaybeTraitGenericFunctionId::Free(free_callee)
                         if self.db().function_with_body_may_panic(FunctionWithBodyId::Free(
                             free_callee,
                         ))? =>
                     {
                         self.handle_stmt_call(call)
                     }
-                    GenericFunctionId::Impl(impl_callee)
+                    MaybeTraitGenericFunctionId::Impl(impl_callee)
                         if self.db().function_with_body_may_panic(FunctionWithBodyId::Impl(
                             impl_callee.function,
                         ))? =>

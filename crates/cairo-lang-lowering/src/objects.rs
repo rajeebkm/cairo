@@ -254,7 +254,7 @@ pub struct StatementLiteral {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct StatementCall {
     /// A function to "call".
-    pub function: semantic::FunctionId,
+    pub function: semantic::MaybeTraitFunctionId,
     /// Living variables in current scope to move to the function, as arguments.
     pub inputs: Vec<VariableId>,
     /// New variables to be introduced into the current scope from the function outputs.
@@ -267,7 +267,7 @@ pub struct StatementCall {
 pub struct StatementMatchExtern {
     // TODO(spapini): ConcreteExternFunctionId once it exists.
     /// A concrete external function to call.
-    pub function: semantic::FunctionId,
+    pub function: semantic::MaybeTraitFunctionId,
     /// Living variables in current scope to move to the function, as arguments.
     pub inputs: Vec<VariableId>,
     /// Match arms. All blocks should have the same rets.

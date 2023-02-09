@@ -95,7 +95,10 @@ pub trait LoweringGroup: SemanticGroup + Upcast<dyn SemanticGroup> {
     /// order is consistent, but not necessarily related to the order of the explicit implicits in
     /// the signature of the function.
     #[salsa::invoke(crate::lower::implicits::function_all_implicits)]
-    fn function_all_implicits(&self, function: semantic::FunctionId) -> Maybe<Vec<TypeId>>;
+    fn function_all_implicits(
+        &self,
+        function: semantic::MaybeTraitFunctionId,
+    ) -> Maybe<Vec<TypeId>>;
 
     /// Returns all the implicit parameters that a function with a body requires (according to both
     /// its signature and the functions it calls).
@@ -117,7 +120,7 @@ pub trait LoweringGroup: SemanticGroup + Upcast<dyn SemanticGroup> {
 
     /// Returns whether the function may panic.
     #[salsa::invoke(crate::lower::implicits::function_may_panic)]
-    fn function_may_panic(&self, function: semantic::FunctionId) -> Maybe<bool>;
+    fn function_may_panic(&self, function: semantic::MaybeTraitFunctionId) -> Maybe<bool>;
 
     /// Returns whether the function may panic.
     #[salsa::invoke(crate::lower::implicits::function_with_body_may_panic)]
@@ -191,7 +194,8 @@ fn concrete_function_with_body_lowered_direct_callees(
     for (_, block) in &lowered_function.blocks {
         for statement in &block.statements {
             if let Statement::Call(statement_call) = statement {
-                let concrete = db.lookup_intern_function(statement_call.function).function;
+                let concrete =
+                    db.lookup_intern_maybe_trait_function(statement_call.function).function;
                 if let Some(function_id) = concrete.get_body(db.upcast()) {
                     direct_callees.push(function_id);
                 }

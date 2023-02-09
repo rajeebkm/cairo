@@ -177,7 +177,7 @@ impl LoweredExpr {
 /// Lazy expression value of an extern call returning an enum.
 #[derive(Debug)]
 pub struct LoweredExprExternEnum {
-    pub function: semantic::FunctionId,
+    pub function: semantic::MaybeTraitFunctionId,
     pub concrete_enum_id: semantic::ConcreteEnumId,
     pub inputs: Vec<VariableId>,
     pub ref_args: Vec<semantic::VarId>,
