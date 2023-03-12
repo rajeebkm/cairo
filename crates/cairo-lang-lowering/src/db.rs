@@ -181,24 +181,6 @@ pub trait LoweringGroup: SemanticGroup + Upcast<dyn SemanticGroup> {
     /// Returns all the functions in the same strongly connected component as the given function.
     #[salsa::invoke(crate::scc::function_with_body_scc)]
     fn function_with_body_scc(&self, function_id: FunctionWithBodyId) -> Vec<FunctionWithBodyId>;
-
-    // ### Feedback set ###
-
-    /// Returns a feedback-vertex-set of the given concrete function. A feedback-vertex-set is the
-    /// set of vertices whose removal leaves a graph without cycles.
-    #[salsa::invoke(crate::graph_algorithms::feedback_set::function_with_body_feedback_set)]
-    fn function_with_body_feedback_set(
-        &self,
-        function: ConcreteFunctionWithBodyId,
-    ) -> Maybe<HashSet<ConcreteFunctionWithBodyId>>;
-
-    /// Returns a feedback-vertex-set of the given concrete-function SCC-representative. A
-    /// feedback-vertex-set is the set of vertices whose removal leaves a graph without cycles.
-    #[salsa::invoke(crate::graph_algorithms::feedback_set::priv_function_with_body_feedback_set_of_representative)]
-    fn priv_function_with_body_feedback_set_of_representative(
-        &self,
-        function: ConcreteSCCRepresentative,
-    ) -> Maybe<HashSet<ConcreteFunctionWithBodyId>>;
 }
 
 pub fn init_lowering_group(db: &mut (dyn LoweringGroup + 'static)) {
