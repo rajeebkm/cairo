@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use cairo_lang_diagnostics::Maybe;
 use cairo_lang_semantic::ConcreteFunctionWithBodyId;
-use cairo_lang_utils::graph_algos::feedback_set::calc_feedback_set;
+use cairo_lang_utils::graph_algos::feedback_set::calc_feedback_set_for_graph;
 
 use super::concrete_function_node::ConcreteFunctionWithBodyNode;
 use crate::db::{ConcreteSCCRepresentative, LoweringGroup};
@@ -22,5 +22,7 @@ pub fn priv_function_with_body_feedback_set_of_representative(
     db: &dyn LoweringGroup,
     function: ConcreteSCCRepresentative,
 ) -> Maybe<HashSet<ConcreteFunctionWithBodyId>> {
-    Ok(calc_feedback_set(&ConcreteFunctionWithBodyNode { function_id: function.0, db }.into()))
+    Ok(calc_feedback_set_for_graph(
+        &ConcreteFunctionWithBodyNode { function_id: function.0, db }.into(),
+    ))
 }

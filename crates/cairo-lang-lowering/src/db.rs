@@ -184,7 +184,7 @@ pub trait LoweringGroup: SemanticGroup + Upcast<dyn SemanticGroup> {
 
     // ### Feedback set ###
 
-    /// Returns the feedback-vertex-set of the given concrete function. A feedback-vertex-set is the
+    /// Returns a feedback-vertex-set of the given concrete function. A feedback-vertex-set is the
     /// set of vertices whose removal leaves a graph without cycles.
     #[salsa::invoke(crate::graph_algorithms::feedback_set::function_with_body_feedback_set)]
     fn function_with_body_feedback_set(
@@ -192,7 +192,7 @@ pub trait LoweringGroup: SemanticGroup + Upcast<dyn SemanticGroup> {
         function: ConcreteFunctionWithBodyId,
     ) -> Maybe<HashSet<ConcreteFunctionWithBodyId>>;
 
-    /// Returns the feedback-vertex-set of the given concrete-function SCC-representative. A
+    /// Returns a feedback-vertex-set of the given concrete-function SCC-representative. A
     /// feedback-vertex-set is the set of vertices whose removal leaves a graph without cycles.
     #[salsa::invoke(crate::graph_algorithms::feedback_set::priv_function_with_body_feedback_set_of_representative)]
     fn priv_function_with_body_feedback_set_of_representative(
