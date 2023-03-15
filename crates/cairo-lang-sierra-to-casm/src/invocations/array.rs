@@ -64,7 +64,7 @@ fn build_array_append(
     ))
 }
 
-/// Handles a Sierra statement for popping an element from the begining of an array.
+/// Handles a Sierra statement for popping an element from the beginning of an array.
 fn build_pop_front(
     elem_ty: &ConcreteTypeId,
     builder: CompiledInvocationBuilder<'_>,

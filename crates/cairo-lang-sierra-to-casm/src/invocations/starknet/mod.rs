@@ -98,8 +98,7 @@ pub fn build_u251_const(
     ))
 }
 
-/// builts a libfunct that tries to convert a felt252 to type with values in the range[0,
-/// 2**251).
+/// builds a libfunc that tries to convert a felt252 to type with values in the range[0, 2**251).
 pub fn build_u251_try_from_felt252(
     builder: CompiledInvocationBuilder<'_>,
 ) -> Result<CompiledInvocation, InvocationError> {

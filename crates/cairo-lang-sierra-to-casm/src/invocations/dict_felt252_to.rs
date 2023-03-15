@@ -222,7 +222,7 @@ fn build_dict_felt252_to_squash(
             let () = call DefaultDictFinalizeInner;
             // Find the number of keys
             tempvar squashed_dict_len = local_squashed_dict_end - local_squashed_dict_start;
-            // The number of refunded acceesses is number_of_accesses - number_of_keys, which equals
+            // The number of refunded accesses is number_of_accesses - number_of_keys, which equals
             // to dict_accesses_len / dict_access_size - squashed_dict_len / dict_access_size.
             // Use distributivity to conserve one operation.
             tempvar accesses_len_minus_squashed_len = dict_accesses_len - squashed_dict_len;
@@ -549,8 +549,8 @@ fn build_dict_felt252_to_squash(
             jump SquashDictInnerContinueRecursion if new_remaining_accesses != 0;
             hint AssertAllKeysUsed {} into {};
             // Return from squash_dict_inner, push values to the stack and return;
-            tempvar retuened_range_check_ptr = arg_range_check_ptr;
-            tempvar retuened_squashed_dict =
+            tempvar returned_range_check_ptr = arg_range_check_ptr;
+            tempvar returned_squashed_dict =
                 squash_dict_inner_arg_squashed_dict_end+dict_access_size;
             #{ fixed_steps += steps; steps = 0; }
             ret;
