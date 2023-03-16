@@ -28,13 +28,14 @@ pub fn lower_panics(
     db: &dyn LoweringGroup,
     function_id: ConcreteFunctionWithBodyId,
     lowered: &FlatLowered,
+    add_get_gas_flag: bool,
 ) -> Maybe<FlatLowered> {
     let lowering_info = LoweringContextBuilder::new_concrete(db, function_id)?;
     let mut ctx = lowering_info.ctx()?;
     ctx.variables = lowered.variables.clone();
 
     // Skip this phase for non panicable functions.
-    if !db.concrete_function_with_body_may_panic(function_id)? {
+    if !db.concrete_function_with_body_may_panic(function_id, add_get_gas_flag)? {
         return Ok(FlatLowered {
             diagnostics: Default::default(),
             variables: ctx.variables,
@@ -341,6 +342,7 @@ pub fn function_may_panic(db: &dyn LoweringGroup, function: semantic::FunctionId
 pub fn concrete_function_with_body_may_panic(
     db: &dyn LoweringGroup,
     function: ConcreteFunctionWithBodyId,
+    add_get_gas_flag: bool,
 ) -> Maybe<bool> {
     // Find the SCC representative.
     let scc_representative = db.concrete_function_with_body_scc_representative(function);

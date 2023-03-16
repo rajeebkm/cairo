@@ -247,6 +247,7 @@ pub fn function_all_implicits(
 pub fn concrete_function_with_body_all_implicits(
     db: &dyn LoweringGroup,
     function: ConcreteFunctionWithBodyId,
+    add_get_gas_flag: bool,
 ) -> Maybe<HashSet<TypeId>> {
     // Find the SCC representative.
     let scc_representative = db.concrete_function_with_body_scc_representative(function);

@@ -103,6 +103,7 @@ pub trait LoweringGroup: SemanticGroup + Upcast<dyn SemanticGroup> {
     fn concrete_function_with_body_all_implicits(
         &self,
         function: ConcreteFunctionWithBodyId,
+        add_get_gas_flag: bool,
     ) -> Maybe<HashSet<TypeId>>;
 
     /// Returns all the implicit parameters that a function with a body requires (according to both
@@ -130,6 +131,7 @@ pub trait LoweringGroup: SemanticGroup + Upcast<dyn SemanticGroup> {
     fn concrete_function_with_body_may_panic(
         &self,
         function: ConcreteFunctionWithBodyId,
+        add_get_gas_flag: bool,
     ) -> Maybe<bool>;
 
     /// Checks if the function has a block that ends with panic.
