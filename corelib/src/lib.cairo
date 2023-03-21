@@ -146,6 +146,16 @@ enum IsZeroResult<T> {
 }
 extern fn unwrap_non_zero<T>(a: NonZero<T>) -> T nopanic;
 
+// TODO(yg): try to use. If works, submit in a separate PR.
+trait NonZeroTrait<T> {
+    fn unwrap(self: NonZero<T>) -> T;
+}
+impl NonZeroImpl<T> of NonZeroTrait::<T> {
+    fn unwrap(self: NonZero<T>) -> T {
+        unwrap_non_zero(self)
+    }
+}
+
 impl IsZeroResultIntoBool<T, impl TDrop: Drop::<T>> of Into::<IsZeroResult<T>, bool> {
     fn into(self: IsZeroResult<T>) -> bool {
         match self {

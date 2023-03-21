@@ -232,3 +232,16 @@ impl E3Drop: Drop::<E3>> of Serde::<(E0, E1, E2, E3)> {
     }
 }
 
+// TODO(yuval): Once we have "where" (e.g. "T: AsFelt252"), impl for all T that can be translated to felt.
+impl NonZeroFeltSerde of Serde::<NonZero<felt252>> {
+    fn serialize(ref serialized: Array<felt252>, input: NonZero<felt252>) {
+        Serde::<felt252>::serialize(ref serialized, unwrap_non_zero(input));
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<NonZero<felt252>> {
+        let f = *serialized.pop_front()?;
+        match felt252_is_zero(f) {
+            IsZeroResult::Zero(()) => Option::None(()),
+            IsZeroResult::NonZero(nz_felt) => Option::Some(nz_felt),
+        }
+    }
+}

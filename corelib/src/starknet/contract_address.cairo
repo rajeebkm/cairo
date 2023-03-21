@@ -1,7 +1,11 @@
 use zeroable::Zeroable;
+use serde::Serde;
+use array::SpanTrait;
+use array::ArrayTrait;
 
 #[derive(Copy, Drop)]
 extern type ContractAddress;
+type NonZeroContractAddress = NonZero<ContractAddress>;
 
 
 extern fn contract_address_const<const address>() -> ContractAddress nopanic;
@@ -25,6 +29,19 @@ impl ContractAddressIntoFelt252 of Into::<ContractAddress, felt252> {
     }
 }
 
+
+/// Converts `address` to `NonZeroContractAddress`. Panics if `address` is zero.
+fn contract_address_non_zero(address: ContractAddress) -> NonZeroContractAddress {
+    match contract_address_is_zero(address) {
+        IsZeroResult::Zero(()) => {
+            let mut data = ArrayTrait::new();
+            data.append('Zero contract address');
+            panic(data)
+        },
+        IsZeroResult::NonZero(address_nz) => address_nz,
+    }
+}
+
 impl ContractAddressZeroable of Zeroable::<ContractAddress> {
     fn zero() -> ContractAddress {
         contract_address_const::<0>()
@@ -32,6 +49,7 @@ impl ContractAddressZeroable of Zeroable::<ContractAddress> {
 
     #[inline(always)]
     fn is_zero(self: ContractAddress) -> bool {
+        //TODO(yg): change to use contract_address_is_zero.
         contract_address_to_felt252(self).is_zero()
     }
 
@@ -58,5 +76,20 @@ impl ContractAddressPartialEq of PartialEq::<ContractAddress> {
     #[inline(always)]
     fn ne(a: ContractAddress, b: ContractAddress) -> bool {
         !(a == b)
+    }
+}
+
+impl NonZeroContractAddressSerde of Serde::<NonZero<ContractAddress>> {
+    fn serialize(ref serialized: Array<felt252>, input: NonZero<ContractAddress>) {
+        // TODO(yg): change `contract_address_to_felt252` to `.into()`.
+        Serde::<felt252>::serialize(ref serialized, contract_address_to_felt252(unwrap_non_zero(input)));
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<NonZero<ContractAddress>> {
+        let f = *serialized.pop_front()?;
+        let ca = contract_address_try_from_felt252(f)?;
+        match contract_address_is_zero(ca) {
+            IsZeroResult::Zero(()) => Option::None(()),
+            IsZeroResult::NonZero(nz_ca) => Option::Some(nz_ca),
+        }
     }
 }
