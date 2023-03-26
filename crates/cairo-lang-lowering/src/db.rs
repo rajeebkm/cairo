@@ -18,6 +18,7 @@ use crate::borrow_check::borrow_check;
 use crate::concretize::concretize_lowered;
 use crate::destructs::add_destructs;
 use crate::diagnostic::LoweringDiagnostic;
+use crate::ids::{FinalFunctionId, FinalFunctionLongId};
 use crate::implicits::lower_implicits;
 use crate::inline::{apply_inlining, PrivInlineData};
 use crate::lower::lower;
@@ -30,6 +31,9 @@ use crate::{FlatBlockEnd, FlatLowered, MatchInfo, Statement};
 // Salsa database interface.
 #[salsa::query_group(LoweringDatabase)]
 pub trait LoweringGroup: SemanticGroup + Upcast<dyn SemanticGroup> {
+    #[salsa::interned]
+    fn intern_final_function(&self, final_function: FinalFunctionLongId) -> FinalFunctionId;
+
     // Reports inlining diagnostics.
     #[salsa::invoke(crate::inline::priv_inline_data)]
     fn priv_inline_data(&self, function_id: FunctionWithBodyId) -> Maybe<Arc<PrivInlineData>>;
@@ -43,46 +47,46 @@ pub trait LoweringGroup: SemanticGroup + Upcast<dyn SemanticGroup> {
     /// A concrete version of priv_function_with_body_lowered_flat
     fn priv_concrete_function_with_body_lowered_flat(
         &self,
-        function_id: ConcreteFunctionWithBodyId,
+        function_id: LoweredFunctionId,
     ) -> Maybe<Arc<FlatLowered>>;
 
     /// Computes the lowered representation after the panic phase.
     fn concrete_function_with_body_postpanic_lowered(
         &self,
-        function_id: ConcreteFunctionWithBodyId,
+        function_id: LoweredFunctionId,
     ) -> Maybe<Arc<FlatLowered>>;
 
     /// Computes the final lowered representation (after all the internal transformations).
     fn concrete_function_with_body_lowered(
         &self,
-        function_id: ConcreteFunctionWithBodyId,
+        function_id: LoweredFunctionId,
     ) -> Maybe<Arc<FlatLowered>>;
 
     /// Returns the set of direct callees of a concrete function with a body after the panic phase.
     fn concrete_function_with_body_postpanic_direct_callees(
         &self,
-        function_id: ConcreteFunctionWithBodyId,
-    ) -> Maybe<Vec<ConcreteFunction>>;
+        function_id: LoweredFunctionId,
+    ) -> Maybe<Vec<FinalFunctionId>>;
 
     /// Returns the set of direct callees of a concrete function with a body.
     fn concrete_function_with_body_direct_callees(
         &self,
-        function_id: ConcreteFunctionWithBodyId,
-    ) -> Maybe<Vec<ConcreteFunction>>;
+        function_id: LoweredFunctionId,
+    ) -> Maybe<Vec<FinalFunctionId>>;
 
     /// Returns the set of direct callees which are functions with body of a concrete function with
     /// a body (i.e. excluding libfunc callees).
     fn concrete_function_with_body_direct_callees_with_body(
         &self,
-        function_id: ConcreteFunctionWithBodyId,
-    ) -> Maybe<Vec<ConcreteFunctionWithBodyId>>;
+        function_id: LoweredFunctionId,
+    ) -> Maybe<Vec<LoweredFunctionId>>;
 
     /// Returns the set of direct callees which are functions with body of a concrete function with
     /// a body (i.e. excluding libfunc callees), after the panic phase.
     fn concrete_function_with_body_postpanic_direct_callees_with_body(
         &self,
-        function_id: ConcreteFunctionWithBodyId,
-    ) -> Maybe<Vec<ConcreteFunctionWithBodyId>>;
+        function_id: LoweredFunctionId,
+    ) -> Maybe<Vec<LoweredFunctionId>>;
 
     /// Aggregates function level semantic diagnostics.
     fn function_with_body_lowering_diagnostics(
